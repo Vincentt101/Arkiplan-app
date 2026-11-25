@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#16324f">
+  <title>ArkiPlan</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <!-- OPENING ANIMATION: a floor plan draws itself, then ArkiPlan by Darvin (tap to skip) -->
+  <div id="splash" aria-hidden="true">
+    <svg class="sp-plan" viewBox="0 0 120 100">
+      <path class="sp-l sp-roof" d="M8 38 L60 8 L112 38" />
+      <path class="sp-l sp-out" d="M16 38 H104 V92 H16 Z" />
+      <path class="sp-l sp-in" d="M58 38 V62 M58 72 V92 M16 64 H44 M54 64 H58 M80 38 V58 M80 68 V92 M80 58 H104" />
+      <path class="sp-l sp-door" d="M44 64 V54 A10 10 0 0 1 54 64 M58 62 H68 A10 10 0 0 1 58 72" />
+      <path class="sp-l sp-dim" d="M16 97 H104 M16 95 V99 M104 95 V99" />
+    </svg>
+    <div class="sp-name">Arki<b>Plan</b></div>
+    <div class="sp-by">Developed by <b>Darvin</b></div>
+  </div>
+  <script>
+    (function () {
+      var s = document.getElementById('splash'), done = false;
+      function end() { if (done) return; done = true; s.classList.add('out'); setTimeout(function () { s.remove(); }, 500); }
+      s.addEventListener('click', end);
+      setTimeout(end, window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 900 : 2600);
+    })();
+  </script>
+  <!-- HOME -->
+  <section id="home" class="screen active">
+    <header class="bar">
+      <div class="brand"><img src="icon.svg" alt=""> ArkiPlan</div>
+      <button class="ghost" id="btnLayout" title="Phone / tablet layout">Layout</button>
+      <button class="ghost" id="btnImport" title="Import project file">Import</button>
+    </header>
+    <main class="home-main">
+      <button class="primary big" id="btnNew">+ New Project</button>
+      <p class="muted small">Draw a residential or commercial building by entering room sizes. ArkiPlan builds the walls, grid lines, columns, elevations, sections, toilet details, electrical &amp; plumbing layouts and the full plan set (PDF / DXF).</p>
+      <div id="proBar" class="small" style="background:#eef4ff;border:1px solid #c9dafc;border-radius:10px;padding:8px 10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap" hidden></div>
+      <h3>Projects</h3>
+      <div id="projList" class="proj-list"></div>
+      <p class="credit">ArkiPlan &middot; Developed by <b>Darvin</b></p>
+    </main>
+    <input type="file" id="fileImport" accept=".json,application/json" hidden>
+    <input type="file" id="fileSketch" accept="image/*" hidden>
+  </section>
+
+  <!-- WIZARD -->
+  <section id="wizard" class="screen">
+    <header class="bar">
+      <button class="ghost" id="wizBack">&#8592;</button>
+      <div class="bar-title" id="wizTitle">New Project</div>
+      <div class="steps" id="wizSteps"></div>
+    </header>
+    <main class="wiz-main">
+      <div id="wizBody" class="form"></div>
+      <div class="wiz-nav">
+        <button class="ghost" id="wizPrev">Back</button>
+        <button class="primary" id="wizNext">Next</button>
+      </div>
+    </main>
+  </section>
+
+  <!-- EDITOR -->
+  <section id="editor" class="screen">
+    <header class="bar">
+      <button class="ghost" id="edBack" title="Projects">&#8592;</button>
+      <div class="bar-title" id="edTitle">Project</div>
+      <select id="floorSel" title="Floor"></select>
+      <button class="ghost icon" id="btnUndo" title="Undo">&#8630;</button>
+      <button class="ghost icon" id="btnRedo" title="Redo">&#8631;</button>
+      <button class="ghost icon" id="btnLayout2" title="Phone / tablet layout">&#9635;</button>
+      <button class="ghost icon" id="btnSettings" title="Project settings">&#9881;</button>
+    </header>
+    <div class="subbar" id="subbar"></div>
+    <div class="canvas-wrap" id="canvasWrap">
+      <svg id="cv" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div id="v3d" class="v3d" hidden></div>
+      <div class="hint" id="hint"></div>
+      <div class="fab-col" id="fabs">
+        <button class="fab" id="fabFit" title="Zoom to fit">&#9974;</button>
+      </div>
+    </div>
+    <div class="sheet-panel" id="panel"></div>
+    <nav class="tabs" id="tabs">
+      <button data-tab="plan" class="on">Plan</button>
+      <button data-tab="elev">Elevation</button>
+      <button data-tab="sect">Section</button>
+      <button data-tab="det">Details</button>
+      <button data-tab="3d">3D</button>
+      <button data-tab="sheets">Sheets</button>
+    </nav>
+  </section>
+
+  <div id="modal" class="modal" hidden>
+    <div class="modal-card">
+      <h3 id="mTitle"></h3>
+      <div id="mBody" class="form"></div>
+      <div class="modal-btns" id="mBtns"></div>
+    </div>
+  </div>
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="js/drawing.js"></script>
+  <script src="js/model.js"></script>
+  <script src="js/geometry.js"></script>
+  <script src="js/blocks.js"></script>
+  <script src="js/plan.js"></script>
+  <script src="js/views.js"></script>
+  <script src="js/mep.js"></script>
+  <script src="js/site.js"></script>
+  <script src="js/sheets.js"></script>
+  <script src="js/sketch.js"></script>
+  <script src="js/bom.js"></script>
+  <script src="js/plumbdet.js"></script>
+  <script src="lib/three.min.js"></script>
+  <script src="js/view3d.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

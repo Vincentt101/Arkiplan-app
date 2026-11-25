@@ -1,0 +1,6 @@
+{
+  "appId": "com.arkiplan.app",
+  "appName": "ArkiPlan",
+  "webDir": "www",
+  "android": { "allowMixedContent": false }
+}
