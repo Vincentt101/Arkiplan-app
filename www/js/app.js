@@ -4043,6 +4043,30 @@
   // expose for debugging/tests
   window.ArkiPlan = { get project() { return P; }, get preview() { return preview; }, get gesture() { return gesture; }, openProject, refresh, setTab, sub };
 
+  // Open a project sent from a link (Ava in the AI office): index.html#p=<base64url of deflate-raw JSON>
+  // or #j=<base64url of plain JSON>. The project is saved on the device and opened in the editor.
+  async function openFromLink() {
+    const m = /^#(p|j)=(.+)$/.exec(location.hash || '');
+    if (!m) return;
+    const clear = () => history.replaceState(null, '', location.pathname + location.search);
+    try {
+      const b64 = m[2].replace(/-/g, '+').replace(/_/g, '/');
+      const bin = atob(b64 + '='.repeat((4 - b64.length % 4) % 4));
+      const bytes = Uint8Array.from(bin, c => c.charCodeAt(0));
+      let text;
+      if (m[1] === 'p') {
+        if (typeof DecompressionStream === 'undefined') throw new Error('this browser is too old to open shared links');
+        text = await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text();
+      } else text = new TextDecoder().decode(bytes);
+      const p = JSON.parse(text);
+      if (!p.floors || !p.info) throw new Error('not an ArkiPlan file');
+      p.id = AP.uid(); AP.store.save(p); clear();
+      openProject(p); toast('Project opened: ' + (p.info.title || 'shared project'));
+    } catch (err) { clear(); toast('Could not open the shared project: ' + err.message, 4000); }
+  }
+
   renderHome();
+  openFromLink();
+  window.addEventListener('hashchange', openFromLink);
   if ('serviceWorker' in navigator && location.protocol.startsWith('http') && !/localhost|127\.0\.0\.1/.test(location.hostname)) navigator.serviceWorker.register('sw.js').catch(() => {});
 })(window.AP);
